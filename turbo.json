@@ -1,0 +1,48 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "storybook-static/**"]
+    },
+    "test": {
+      "outputs": []
+    },
+    "test:watch": {
+      "outputs": []
+    },
+    "test:e2e": {
+      "outputs": []
+    },
+    "analyze": {
+      "outputs": []
+    },
+    "lint": {
+      "outputs": []
+    },
+    "lint:fix": {
+      "outputs": []
+    },
+    "lint:dist": {
+      "outputs": []
+    },
+    "lint:css": {
+      "outputs": []
+    },
+    "lint:html": {
+      "outputs": []
+    },
+    "lint:types": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false
+    },
+    "start": {
+      "cache": false
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}
