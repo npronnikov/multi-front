@@ -1,1 +1,0 @@
-DROP INDEX IF EXISTS "subscription_partner_license_key_idx";
