@@ -1,4 +1,4 @@
-# Design: Add Version Button
+# Design: Add Version Button 123
 
 ## Overview
 Добавление кнопки "Version" в header приложения с отображением modal-окна при клике. Реализация выполняется на Frontend (Next.js/React) без изменений в backend API для начальной версии.
