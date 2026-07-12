@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, SubmitEvent } from "react";
+import VersionModal from "./components/VersionModal";
 
 interface Todo {
   id: number;
@@ -15,6 +16,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showVersionModal, setShowVersionModal] = useState(false);
 
   useEffect(() => {
     fetch(`${API_URL}/api/todos`)
@@ -79,9 +81,18 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center bg-zinc-50 px-4 py-16 font-sans dark:bg-black">
       <main className="w-full max-w-md">
-        <h1 className="mb-8 text-center text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          Todo List
-        </h1>
+        <div className="mb-8 flex items-center justify-between">
+          <h1 className="text-center text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
+            Todo List
+          </h1>
+          <button
+            onClick={() => setShowVersionModal(true)}
+            className="rounded-full bg-blue-500 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+            aria-label="View application version"
+          >
+            Version
+          </button>
+        </div>
 
         {error && (
           <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-center text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
@@ -145,6 +156,12 @@ export default function Home() {
           </ul>
         )}
       </main>
+
+      {/* Version Modal */}
+      <VersionModal
+        isOpen={showVersionModal}
+        onClose={() => setShowVersionModal(false)}
+      />
     </div>
   );
 }
