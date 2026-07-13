@@ -1,6 +1,6 @@
 # Architecture Overview: back (multi-back)
 
-**Repo alias:** back
+**Repo alias:** FRONT
 
 **Назначение:**
 Бэкенд-репозиторий Spring Boot-приложения с REST API для управления Todo-задачами. Предоставляет JPA-репозитории с H2-базой данных и REST-контроллеры.
