@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Repo alias:** main
+**Repo alias:** frontend
 
 **Назначение:** Монорепозиторий для fullstack todo-приложения с Spring Boot backend и Next.js frontend.
 
