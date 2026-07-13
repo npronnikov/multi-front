@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, SubmitEvent } from "react";
+import VersionModal from "./components/VersionModal";
 
 interface Todo {
   id: number;
@@ -15,6 +16,11 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showVersionModal, setShowVersionModal] = useState(false);
+
+  const toggleVersionModal = () => {
+    setShowVersionModal((prev) => !prev);
+  };
 
   useEffect(() => {
     fetch(`${API_URL}/api/todos`)
@@ -145,6 +151,17 @@ export default function Home() {
           </ul>
         )}
       </main>
+
+      <footer className="mt-8 flex flex-col items-center py-8 px-4">
+        <button
+          onClick={toggleVersionModal}
+          className="text-zinc-500 transition-colors hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+        >
+          ℹ️ Version
+        </button>
+      </footer>
+
+      <VersionModal isOpen={showVersionModal} onClose={toggleVersionModal} />
     </div>
   );
 }
