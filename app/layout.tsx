@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -27,7 +28,17 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <nav className="flex justify-center gap-6 border-b border-black/8 py-3 text-sm font-medium dark:border-white/[.145]">
+          <Link href="/" className="text-black hover:underline dark:text-zinc-50">
+            Todos
+          </Link>
+          <Link href="/chat" className="text-black hover:underline dark:text-zinc-50">
+            Agent Chat
+          </Link>
+        </nav>
+        {children}
+      </body>
     </html>
   );
 }
