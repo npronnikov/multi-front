@@ -1,0 +1,38 @@
+# UI Version Button Specification Delta
+
+## Purpose
+Добавляет возможность отображения версии приложения в пользовательском интерфейсе через кнопку "version". Это delta-spec описывает новое поведение UI для показа информации о версии.
+
+## Requirements
+
+### ADDED Requirements
+
+#### Requirement: Display version button on main page
+Система должна предоставлять кнопку с текстом "version" на главной странице приложения рядом с заголовком "Todo List".
+
+##### Scenario: User opens main page
+- **WHEN** пользователь открывает главную страницу приложения
+- **THEN** отображается кнопка с текстом "version" рядом с заголовком "Todo List"
+- **AND** кнопка визуально стилизована в соответствии с дизайном приложения
+
+#### Requirement: Show version on button click
+При нажатии на кнопку "version" система должна отображать текущую версию приложения.
+
+##### Scenario: User clicks version button
+- **WHEN** пользователь нажимает на кнопку "version"
+- **THEN** отображается текущая версия приложения (например, "v0.1.0")
+- **AND** версия считана из package.json во время сборки
+- **AND** отображение происходит без перезагрузки страницы
+
+##### Scenario: User clicks version button again
+- **WHEN** пользователь нажимает на кнопку "version" повторно
+- **THEN** версия продолжает отображаться
+- **AND** переключение между состояниями работает корректно
+
+#### Requirement: Version source
+Версия приложения должна быть получена из package.json во время сборки или выполнения.
+
+##### Scenario: Version is available in package.json
+- **WHEN** в package.json определена версия (например, "0.1.0")
+- **THEN** приложение использует эту версию для отображения
+- **AND** версия импортируется статически или читается из package.json
