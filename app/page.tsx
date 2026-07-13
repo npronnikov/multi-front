@@ -15,6 +15,8 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [versionLoading, setVersionLoading] = useState(false);
+  const [versionError, setVersionError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/todos`)
@@ -76,6 +78,21 @@ export default function Home() {
     }
   };
 
+  const showVersion = async () => {
+    setVersionLoading(true);
+    setVersionError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/version`);
+      if (!res.ok) throw new Error("Failed to get version");
+      const data = await res.json();
+      alert(`Application version: ${data.version}`);
+    } catch {
+      setVersionError("Could not get version. Is the backend running?");
+    } finally {
+      setVersionLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center bg-zinc-50 px-4 py-16 font-sans dark:bg-black">
       <main className="w-full max-w-md">
@@ -86,6 +103,12 @@ export default function Home() {
         {error && (
           <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-center text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
             {error}
+          </p>
+        )}
+
+        {versionError && (
+          <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-center text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
+            {versionError}
           </p>
         )}
 
@@ -102,6 +125,14 @@ export default function Home() {
             className="rounded-full bg-foreground px-5 py-2 font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc]"
           >
             Add
+          </button>
+          <button
+            type="button"
+            onClick={showVersion}
+            disabled={versionLoading}
+            className="rounded-full bg-foreground px-5 py-2 font-medium text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {versionLoading ? "Loading..." : "Version"}
           </button>
         </form>
 
