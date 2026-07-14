@@ -6,6 +6,14 @@ interface ChatSession {
   id: number;
   cwd: string;
   createdAt: string;
+  currentModelId?: string | null;
+  availableModelsJson?: string | null;
+}
+
+interface ModelOption {
+  modelId: string;
+  name: string;
+  description?: string | null;
 }
 
 interface ToolCallEvent {
@@ -52,8 +60,35 @@ export default function ChatPage() {
   const [streamThought, setStreamThought] = useState("");
   const [streamMessage, setStreamMessage] = useState("");
   const [streamToolCalls, setStreamToolCalls] = useState<ToolCallEvent[]>([]);
+  const [switchingModel, setSwitchingModel] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const showMenuRef = useRef<HTMLDivElement>(null);
+
+  const availableModels: ModelOption[] = session?.availableModelsJson
+    ? (JSON.parse(session.availableModelsJson) as ModelOption[])
+    : [];
+
+  const changeModel = async (modelId: string) => {
+    if (!session || modelId === session.currentModelId) return;
+    setSwitchingModel(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/agent/sessions/${session.id}/model`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modelId }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error((body as { message?: string })?.message || "Failed to switch model");
+      }
+      setSession(await res.json());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not switch model.");
+    } finally {
+      setSwitchingModel(false);
+    }
+  };
 
   const toggleDisplayExtra = (extra: DisplayExtra) => {
     setDisplayExtras((prev) => {
@@ -247,6 +282,21 @@ export default function ChatPage() {
             Agent Chat
           </h1>
           <div className="flex items-center gap-3">
+            {availableModels.length > 0 && (
+              <select
+                value={session?.currentModelId ?? ""}
+                onChange={(e) => changeModel(e.target.value)}
+                disabled={switchingModel || !session}
+                title="Model"
+                className="rounded-full border border-black/8 bg-white px-3 py-1.5 text-sm font-medium text-black outline-none transition-colors hover:bg-black/5 disabled:opacity-50 dark:border-white/[.145] dark:bg-zinc-900 dark:text-zinc-50 dark:hover:bg-white/10"
+              >
+                {availableModels.map((model) => (
+                  <option key={model.modelId} value={model.modelId}>
+                    {model.name}
+                  </option>
+                ))}
+              </select>
+            )}
             <div className="flex items-center gap-1.5" title={
               acpAlive === null ? "Agent status unknown" : acpAlive ? "Agent process running" : "Agent process stopped"
             }>

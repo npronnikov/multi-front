@@ -36,6 +36,9 @@ export default function RootLayout({
           <Link href="/chat" className="text-black hover:underline dark:text-zinc-50">
             Agent Chat
           </Link>
+          <Link href="/logs" className="text-black hover:underline dark:text-zinc-50">
+            Logs
+          </Link>
         </nav>
         {children}
       </body>
