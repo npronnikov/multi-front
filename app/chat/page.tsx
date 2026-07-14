@@ -49,6 +49,9 @@ export default function ChatPage() {
   const [showMenuOpen, setShowMenuOpen] = useState(false);
   const [acpAlive, setAcpAlive] = useState<boolean | null>(null);
   const [acpBusy, setAcpBusy] = useState(false);
+  const [streamThought, setStreamThought] = useState("");
+  const [streamMessage, setStreamMessage] = useState("");
+  const [streamToolCalls, setStreamToolCalls] = useState<ToolCallEvent[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const showMenuRef = useRef<HTMLDivElement>(null);
 
@@ -156,6 +159,39 @@ export default function ChatPage() {
     }
   };
 
+  interface StreamLine {
+    type: "thought" | "message" | "tool_call" | "tool_call_update" | "done" | "error";
+    data: unknown;
+  }
+
+  const handleStreamLine = (line: StreamLine) => {
+    switch (line.type) {
+      case "thought":
+        setStreamThought((prev) => prev + (line.data as string));
+        break;
+      case "message":
+        setStreamMessage((prev) => prev + (line.data as string));
+        break;
+      case "tool_call":
+        setStreamToolCalls((prev) => [...prev, line.data as ToolCallEvent]);
+        break;
+      case "tool_call_update": {
+        const update = line.data as { toolCallId: string; status: string };
+        setStreamToolCalls((prev) =>
+          prev.map((tc) => (tc.toolCallId === update.toolCallId ? { ...tc, status: update.status } : tc))
+        );
+        break;
+      }
+      case "done": {
+        const result = line.data as SendMessageResult;
+        setMessages((prev) => [...prev, result.userMessage, result.assistantMessage]);
+        break;
+      }
+      case "error":
+        throw new Error((line.data as { message?: string })?.message ?? "Agent error");
+    }
+  };
+
   const sendMessage = async (e: SubmitEvent) => {
     e.preventDefault();
     const text = input.trim();
@@ -164,6 +200,9 @@ export default function ChatPage() {
     setInput("");
     setSending(true);
     setError(null);
+    setStreamThought("");
+    setStreamMessage("");
+    setStreamToolCalls([]);
 
     try {
       const res = await fetch(`${API_URL}/api/agent/sessions/${session.id}/messages`, {
@@ -171,14 +210,32 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      if (!res.ok) throw new Error("Failed to send message");
-      const result: SendMessageResult = await res.json();
-      setMessages((prev) => [...prev, result.userMessage, result.assistantMessage]);
+      if (!res.ok || !res.body) throw new Error("Failed to send message");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex;
+        while ((newlineIndex = buffer.indexOf("\n")) >= 0) {
+          const line = buffer.slice(0, newlineIndex).trim();
+          buffer = buffer.slice(newlineIndex + 1);
+          if (line) handleStreamLine(JSON.parse(line));
+        }
+      }
     } catch {
       setInput(text);
       setError("The agent did not respond. Is the backend (and qwen) running?");
     } finally {
       setSending(false);
+      setStreamThought("");
+      setStreamMessage("");
+      setStreamToolCalls([]);
     }
   };
 
@@ -281,10 +338,38 @@ export default function ChatPage() {
           )}
 
           {sending && (
-            <div className="flex justify-start">
-              <div className="max-w-[80%] rounded-2xl bg-zinc-100 px-4 py-2 text-sm text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                Agent is working...
-              </div>
+            <div className="flex flex-col items-start gap-1.5">
+              {streamThought && (
+                <div className="max-w-[80%] whitespace-pre-wrap rounded-xl border border-dashed border-black/10 bg-zinc-50 px-3 py-2 text-xs italic text-zinc-500 dark:border-white/10 dark:bg-zinc-900/60 dark:text-zinc-400">
+                  {streamThought}
+                  <span className="animate-pulse">▍</span>
+                </div>
+              )}
+
+              {streamToolCalls.length > 0 && (
+                <div className="flex max-w-[80%] flex-col gap-1">
+                  {streamToolCalls.map((toolCall) => (
+                    <div
+                      key={toolCall.toolCallId}
+                      className="rounded-full border border-black/8 bg-zinc-50 px-3 py-1 text-xs text-zinc-600 dark:border-white/10 dark:bg-zinc-900/60 dark:text-zinc-400"
+                    >
+                      {toolCall.kind}: {toolCall.title}{" "}
+                      <span className="text-zinc-400 dark:text-zinc-500">({toolCall.status})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {streamMessage ? (
+                <div className="max-w-[80%] whitespace-pre-wrap rounded-2xl bg-zinc-100 px-4 py-2 text-sm text-black dark:bg-zinc-800 dark:text-zinc-50">
+                  {streamMessage}
+                  <span className="animate-pulse">▍</span>
+                </div>
+              ) : !streamThought && streamToolCalls.length === 0 ? (
+                <div className="max-w-[80%] rounded-2xl bg-zinc-100 px-4 py-2 text-sm text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                  Agent is working...
+                </div>
+              ) : null}
             </div>
           )}
           <div ref={bottomRef} />
