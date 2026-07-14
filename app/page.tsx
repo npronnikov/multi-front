@@ -15,6 +15,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [version, setVersion] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/todos`)
@@ -76,12 +77,36 @@ export default function Home() {
     }
   };
 
+  const fetchVersion = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/version`);
+      if (!res.ok) throw new Error("Failed to fetch version");
+      const data = await res.json();
+      setVersion(data.version);
+    } catch {
+      setError("Could not fetch the version. Is the backend running?");
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col items-center bg-zinc-50 px-4 py-16 font-sans dark:bg-black">
       <main className="w-full max-w-md">
-        <h1 className="mb-8 text-center text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          Todo List
-        </h1>
+        <div className="mb-8 flex items-center justify-center gap-3">
+          <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
+            Todo List
+          </h1>
+          <button
+            onClick={fetchVersion}
+            className="rounded-full border border-black/10 px-4 py-1.5 text-sm font-medium text-black/70 transition-colors hover:bg-black/5 dark:border-white/20 dark:text-zinc-300 dark:hover:bg-white/10"
+          >
+            Version
+          </button>
+          {version && (
+            <span className="text-sm text-zinc-500 dark:text-zinc-400">
+              {version}
+            </span>
+          )}
+        </div>
 
         {error && (
           <p className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-center text-sm text-red-600 dark:bg-red-950/40 dark:text-red-400">
